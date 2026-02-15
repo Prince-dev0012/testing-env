@@ -1,24 +1,46 @@
-name: Inject Env Variable
+name: Inject Env Variable & Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
+# 🔑 Required so action can push to gh-pages
 permissions:
-  contents: write   # 🔥 REQUIRED
+  contents: write
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+
+      # 1️⃣ Checkout repository
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      # 2️⃣ Debug secret loading
+      - name: Check if Secret Loaded
+        run: |
+          if [ -z "${{ secrets.TEST_MESSAGE }}" ]; then
+            echo "❌ Secret is EMPTY"
+            exit 1
+          else
+            echo "✅ Secret loaded successfully"
+          fi
+
+      # 3️⃣ Inject secret into HTML
       - name: Inject Secret into HTML
         run: |
-          sed -i "s|__ENV_MESSAGE__|${{ secrets.TEST_MESSAGE }}|g" index.html
+          MESSAGE="${{ secrets.TEST_MESSAGE }}"
+          echo "Injected message length: ${#MESSAGE}"
+          sed -i "s|__ENV_MESSAGE__|$MESSAGE|g" index.html
 
+      # 4️⃣ Show modified HTML (debug)
+      - name: Debug HTML Output
+        run: cat index.html
+
+      # 5️⃣ Deploy to GitHub Pages
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
