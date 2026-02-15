@@ -1,0 +1,23 @@
+name: Inject Env Variable
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Replace ENV in HTML
+        run: |
+          sed -i "s|__ENV_MESSAGE__|${{ secrets.TEST_MESSAGE }}|g" index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
